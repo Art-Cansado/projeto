@@ -1,0 +1,45 @@
+name: Testes automaticos do Flask
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 */6 * * *'
+
+permissions:
+  contents: read
+
+jobs:
+  testes:
+    name: Testes com Python 3.14
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Baixar codigo
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+          cache: pip
+
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: Verificar sintaxe
+        run: python -m compileall -q app.py tests
+
+      - name: Executar testes
+        run: python -m pytest -v --junitxml=resultado-dos-testes.xml
+
+      - name: Salvar resultado dos testes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: resultado-dos-testes
+          path: resultado-dos-testes.xml
+          if-no-files-found: ignore

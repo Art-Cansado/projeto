@@ -48,3 +48,18 @@ python app.py
 
 Acesse `http://localhost:5000/`. Esse comando executa o Flask no ambiente
 onde o comando foi iniciado; o GitHub Actions nao e um servico de hospedagem.
+
+## Lista de tarefas e deploy
+
+Ao rodar o Flask localmente, abra `http://localhost:5000/tarefas` para acessar a interface.
+A rota `/` retorna os dados em JSON. A interface permite marcar tarefas como concluídas
+e salva o progresso no navegador.
+
+O workflow **CI/CD da lista de tarefas** executa `python -m pytest -v` e usa
+`python exportar_pages.py` para gerar `site/index.html` com o HTML renderizado
+pelo Flask. A publicação no GitHub Pages depende da aprovação dos testes.
+
+Para habilitar a publicação no repositório, abra **Settings → Pages** e selecione
+**GitHub Actions** em **Source**. Depois, abra **Actions → CI/CD da lista de tarefas**
+e use **Run workflow** na branch `main`. A execução exibe o endereço do deploy quando
+a publicação termina.

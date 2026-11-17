@@ -1,0 +1,51 @@
+name: CI/CD da lista de tarefas
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+jobs:
+  testes:
+    name: Testar aplicação e gerar página
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.14'
+          cache: pip
+      - run: python -m pip install -r requirements.txt
+      - name: Executar testes
+        run: python -m pytest -v
+      - name: Exportar página do Flask
+        run: python exportar_pages.py
+      - name: Preparar arquivos para o GitHub Pages
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: site
+
+  publicar:
+    name: Publicar no GitHub Pages
+    if: github.ref == 'refs/heads/main'
+    needs: testes
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - name: Publicar
+        id: deploy
+        uses: actions/deploy-pages@v4

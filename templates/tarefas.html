@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lista de tarefas</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: Inter, system-ui, sans-serif;
+      color: #f2f8f6;
+      background: #101916;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: clamp(2rem, 9vw, 7rem) 1rem; }
+    main { max-width: 38rem; margin: auto; }
+    h1 { margin: 0; font-size: clamp(2.15rem, 7vw, 3.5rem); letter-spacing: -.045em; }
+    p { color: #b5cabf; line-height: 1.6; }
+    .panel {
+      margin-top: 2rem; padding: clamp(1rem, 4vw, 1.75rem);
+      border: 1px solid #3a5349; border-radius: 1.2rem; background: #1b2a24;
+    }
+    progress { width: 100%; height: .65rem; accent-color: #8ef0bf; }
+    ul { list-style: none; margin: 1.3rem 0 0; padding: 0; display: grid; gap: .65rem; }
+    label {
+      display: flex; gap: .85rem; align-items: center; padding: .9rem 1rem;
+      border-radius: .75rem; background: #263c32; cursor: pointer;
+    }
+    input { width: 1.25rem; height: 1.25rem; margin: 0; accent-color: #8ef0bf; }
+    input:checked + span { text-decoration: line-through; color: #c1d7cc; }
+    input:focus-visible, a:focus-visible { outline: 3px solid #8ef0bf; outline-offset: 3px; }
+    #status { margin: 0 0 .4rem; font-size: .95rem; }
+    footer { margin-top: 1.25rem; }
+    a { color: #a0f2c7; text-underline-offset: .2em; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Lista de tarefas</h1>
+    <p>Marque as tarefas concluídas para acompanhar seu progresso.</p>
+    <section class="panel" aria-label="Progresso das tarefas">
+      <p id="status" aria-live="polite">0 de {{ tasks|length }} tarefas concluídas</p>
+      <progress aria-label="Tarefas concluídas" value="0" max="{{ tasks|length }}"></progress>
+      <ul>
+        {% for task in tasks %}
+        <li>
+          <label>
+            <input type="checkbox" value="{{ task.id }}">
+            <span>{{ task.title }}</span>
+          </label>
+        </li>
+        {% endfor %}
+      </ul>
+    </section>
+    <footer><a href="https://github.com/Art-Cansado/projeto">Ver código no GitHub</a></footer>
+  </main>
+  <script>
+    const tasks = [...document.querySelectorAll('input[type="checkbox"]')];
+    const progress = document.querySelector('progress');
+    const status = document.querySelector('#status');
+    const storageKey = 'art-cansado-projeto-tarefas';
+    let savedTasks = [];
+
+    try {
+      const storedValue = JSON.parse(localStorage.getItem(storageKey) ?? '[]');
+      if (Array.isArray(storedValue)) savedTasks = storedValue;
+    } catch {}
+
+    function updateProgress() {
+      const completed = tasks.filter(task => task.checked).map(task => task.value);
+      progress.value = completed.length;
+      status.textContent = `${completed.length} de ${tasks.length} tarefas concluídas`;
+      return completed;
+    }
+
+    tasks.forEach(task => {
+      task.checked = savedTasks.includes(task.value);
+      task.addEventListener('change', () => {
+        const completed = updateProgress();
+        try {
+          localStorage.setItem(storageKey, JSON.stringify(completed));
+        } catch {}
+      });
+    });
+    updateProgress();
+  </script>
+</body>
+</html>
